@@ -1,68 +1,30 @@
+import {getUserName, setUserName, deleteUserName} from './user.js'
+import  {addTodoList, clearTodo, showList, resetList} from './todoList.js'
+import {modifyWidget, addWidget, showWidgetList, deleteWidget, resetWidgetList, reloadWidgetTime} from './widget.js'
+import {requestDust, makeDustData, renderDustData, selectEmoticon} from './dust.js'
+//import 해오는 주소에 .js를 붙이지않으면 404 error 발생
+
 let nowDate = document.querySelector('main .date h1');
 const todoList = document.querySelector('main .todoListContainer .todoList');
-
 let itemList = [];
-
-function getUserName() {
-  const userName = document.querySelector('main .todoListContainer .userNameInput');
-  if (localStorage.getItem('userName')) {
-    userName.outerHTML = `<span class="userName" onClick="deleteUserName()">${JSON.parse(localStorage.getItem('userName'))}</span>`
-  }
+let dust = {
+  place: '서울',
+  dateTime: '',
+  fineDust: '',                  //미세먼지
+  fineDustLevel: '',            //미세먼지 단계
+  ultraFineDust: '',             //초미세먼지
+  ultraFineDustLevel: '',       //초미세먼지 단계  
+  nitrogenDioxide: '',           //이산화질소
+  nitrogenDioxideLevel: ''      //이산화질소 단계
 }
 
-function setUserName() {
-  const userName = document.querySelector('main .todoListContainer .userNameInput');
-  if (userName.value != "") {
-    localStorage.setItem('userName', JSON.stringify(userName.value))
-  }
 
-  getUserName();
-}
+window.nowDate = nowDate;
+window.todoList = todoList;
+window.itemList = itemList;
+window.dust = dust;
 
-function deleteUserName() {
-  const userName = document.querySelector('main .todoListContainer .userName')
-  localStorage.removeItem('userName')
-  userName.outerHTML = `<input type="text" class="userNameInput"
-  onkeyup="if(window.event.keyCode==13){setUserName()}"></input>`
-}
 
-function addTodoList() {
-  let item = document.querySelector('main .todoListContainer .todoInput').value;
-  if (localStorage.getItem('itemList')) {
-    itemList = JSON.parse(localStorage.getItem('itemList'));
-  }
-  if (item != null && !itemList.includes(item)) {
-
-    itemList.unshift(item);
-    localStorage.setItem('itemList', JSON.stringify(itemList))
-  } else {
-    alert('중복되거나 없는 값이 입력되었습니다.')
-  }
-
-  showList()
-  item = ''
-}
-
-function clearTodo(e) {
-  e.target.classList.toggle('clear')
-}
-
-function showList() {
-  todoList.innerHTML = '';
-  const parsedItemList = JSON.parse(localStorage.getItem('itemList'))
-  if(parsedItemList === null) {
-    return
-  }
-  for (let i = 0; i < parsedItemList.length; i++) {
-    todoList.innerHTML += `<li onClick="clearTodo(event)">${parsedItemList[i]}</li>`;
-  }
-}
-
-function resetList() {
-  todoList.innerHTML = '';
-  localStorage.removeItem('itemList');
-  toggleModal()
-}
 
 function toggleModal(item, e) {
   const modal = document.querySelector('body .modal');
@@ -193,159 +155,10 @@ function toggleModal(item, e) {
     deleteBtn.classList.remove('show')
     modalText.innerHTML = '';
     modalBody.style.height = '500px'
-    modalBody.style.width = '90%'
+    modalBody.style.width = '70%'
   }
   modal.classList.toggle('show')
 }
-
-function modifyWidget(selectedWidget) {
-  addWidget('true', selectedWidget)
-}
-
-function addWidget(isModify, selectedWidget) {
-  const widgetName = document.querySelector('.modal .modal_body .addWidgetModal article div .widgetText').value;
-  const widgetDate = document.querySelector('.modal .modal_body .addWidgetModal article .widgetDate').value;
-  const mainDate = () => {
-    const today = new Date().getTime();
-    const widgetDate = document.querySelector('.modal .modal_body .addWidgetModal article .widgetDate').valueAsNumber;
-    let gap = null;
-    if (today > widgetDate) {
-      gap = Math.floor(((today - widgetDate) / 1000 / 60 / 60 / 24) + 1)    //경과일
-    } else {
-      gap = Math.ceil((widgetDate - today) / 1000 / 60 / 60 / 24)   //디데이 올림
-    }
-    return gap
-  };
-  let widgetDateType = '';
-  const widgetDateTypeContent = () => {
-    const isDday = document.querySelector('.modal .modal_body form article .checkTypeContainer #dDay').checked;
-    if (isDday) {
-      widgetDateType = 'dDay';
-      return (`
-      <div class="widgetDateText">
-        <span>D-</span>
-        <span class="mainDate">${mainDate()}</span>
-      </div>
-      `)
-    } else {
-      widgetDateType = 'days';
-      return (`
-      <div class="widgetDateText"> 
-        <span class="mainDate">${mainDate()}</span>
-        <span>일째</span>
-      </div>
-      `)
-    }
-  }
-  let widgetList = [];
-  if (localStorage.getItem('widgetList')) {
-    widgetList = JSON.parse(localStorage.getItem('widgetList'));
-    if (widgetList.length >= 8) {
-      alert('위젯리스트가 다 찼습니다.')
-      return
-    }
-  }
-
-  const createNextId = (widgetList) => {
-    if(widgetList.length > 0) {
-      let numOfArrElements = widgetList.length
-      let lastIdx = Number(numOfArrElements) - 1
-      let nextID = Number(widgetList[lastIdx].id) + 1;
-
-      return nextID;
-    } else {
-      return 0;
-    }
-  }
-  const newWidget = {
-    content: `
-    <li class="widget" id="${createNextId(widgetList)}" onclick="toggleModal('modifyWidget', event)">
-      <span>${widgetName}</span>
-      <span id="eventDate">${widgetDate}</span>
-      ${widgetDateTypeContent()}
-    </li>
-    `,
-    id: createNextId(widgetList),
-    widgetName: widgetName,
-    widgetDate: widgetDate,
-    widgetDateType: widgetDateType,
-    widgetCalculatedDate: mainDate()
-  }
-
-  if (isModify === 'true') {
-    for (let i = 0; i < widgetList.length; i++) {
-      if (widgetList[i].id === selectedWidget.id) {
-        widgetList[i] = { ...newWidget }
-        break;
-      }
-    }
-  } else {
-    widgetList.push(newWidget);
-  }
-
-  localStorage.setItem('widgetList', JSON.stringify(widgetList))
-  showWidgetList();
-  toggleModal();
-}
-
-function showWidgetList() {
-  let widgetContainer = document.querySelector('.widgetContainer');
-  widgetContainer.innerHTML = `
-    <button onClick="resetWidgetList()">초기화</button>
-    <li class="widget" onclick="toggleModal('widget')">
-      <span class="addWidget">+</span>
-    </li>
-  `;
-  const parsedWidgetList = JSON.parse(localStorage.getItem('widgetList'))
-  if (parsedWidgetList === null) {
-    return
-  }
-  for (let i = 0; i < parsedWidgetList.length; i++) {
-    widgetContainer.innerHTML += `${parsedWidgetList[i].content}`;
-  }
-}
-
-function deleteWidget(id) {
-  const parsedWidgetList = JSON.parse(localStorage.getItem('widgetList'));
-  for (let i = 0; i < parsedWidgetList.length; i++) {
-    if (parsedWidgetList[i].id === parseInt(id, 10)) {
-      parsedWidgetList.splice(i, 1);
-      i--;
-    }
-  }
-  localStorage.removeItem('widgetList');
-  localStorage.setItem('widgetList', JSON.stringify(parsedWidgetList))
-  showWidgetList();
-  toggleModal();
-}
-
-function resetWidgetList() {
-  localStorage.removeItem('widgetList');
-  showWidgetList()
-  alert('위젯이 초기화되었습니다.')
-}
-
-function reloadWidgetTime() {
-  const today = new Date().getTime();
-  const widgetList = document.querySelector('body .widgetContainer')
-  let gap = null;
-  for(let i = 2; i < widgetList.children.length; i++) {
-    let widgetDate = Date.parse(widgetList.children[i].children[1].innerHTML);    //문자열을 밀리초 값으로 변환
-    let mainDate;
-    if (today > widgetDate) {
-      gap = Math.floor(((today - widgetDate) / 1000 / 60 / 60 / 24) + 1)    //경과일
-      mainDate = widgetList.children[i].children[2].firstElementChild
-    } else {
-      gap = Math.ceil((widgetDate - today) / 1000 / 60 / 60 / 24)   //디데이 올림
-      mainDate = widgetList.children[i].children[2].lastElementChild
-    }
-    mainDate.innerHTML = `${gap}`
-  }
-}
-
-
-
-
 
 function getTime(type) {
   const date = new Date();
@@ -413,213 +226,11 @@ function stopWatch(type) {
   }
 }
 
-function requestCovid() {
-  let today = formatDate().today
-  let yesterday = formatDate().yesterday
-  const request = axios({
-    method: 'GET',
-    url: `http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19InfStateJson?serviceKey=mRGjg3%2F2UUHbsxo6%2F0hRd0yGtU%2BpjfH9HP%2FnfwA8nUWyBwbRChPmV85e9wPdnhuChn3lUqWxgE4iYvrHxn4VsA%3D%3D&pageNo=1&numOfRows=10&startCreateDt=${yesterday}&endCreateDt=${today}`,
-  }).then(response=>{
-    makeCovidData(response.data)
-  })
-}
-
-function requestDust() {
-  const fineDust = ['PM10', 'PM25', 'NO2'];
-    for (const item of fineDust) {
-      const request = axios({
-        method: 'GET',
-        url: `http://apis.data.go.kr/B552584/ArpltnStatsSvc/getCtprvnMesureLIst?itemCode=${item}&dataGubun=HOUR&pageNo=1&numOfRows=100&returnType=json&serviceKey=mRGjg3%2F2UUHbsxo6%2F0hRd0yGtU%2BpjfH9HP%2FnfwA8nUWyBwbRChPmV85e9wPdnhuChn3lUqWxgE4iYvrHxn4VsA%3D%3D`
-      }).then(response => {
-        makeDustData(item, response.data)
-      })
-    }
-    renderDustData()
-}
-
-let dust = {
-  place: '서울',
-  dateTime: '',
-  fineDust: '',                  //미세먼지
-  fineDustLevel: '',            //미세먼지 단계
-  ultraFineDust: '',             //초미세먼지
-  ultraFineDustLevel: '',       //초미세먼지 단계  
-  nitrogenDioxide: '',           //이산화질소
-  nitrogenDioxideLevel: ''      //이산화질소 단계
-}
-makeDustData = (item, data) => {
-  let dustData;
-  let value, level;
-  for (let key in data) dustData = data[key];
-  console.log('dustData: ', dustData)
-  
-  value = dustData.body.items[0].seoul;
-
-  if(item === 'PM10') {
-    if (value <= 30) {
-      level = '좋음';
-    } else if (value > 30 && value <= 50) {
-      level = '보통';
-    } else if (value > 50 && value <= 100) {
-      level = '나쁨';
-    } else if (value > 101) {
-      level = '매우나쁨';
-    }
-
-    dust= {
-      ...dust,
-      dateTime: dustData.body.items[0].dataTime,
-      fineDust: value,
-      fineDustLevel: level
-    }
-
-  } else if (item === 'PM25') {
-    if (value <= 15) {
-      level = '좋음';
-    } else if (value > 15 && value <= 25) {
-      level = '보통';
-    } else if (value > 25 && value <= 50) {
-      level = '나쁨';
-    } else if (value > 51) {
-      level = '매우나쁨';
-    }
-
-    dust= {
-      ...dust,
-      ultraFineDust: value,
-      ultraFineDustLevel: level
-    }
-
-  } else if (item === 'NO2') {
-    if (value <= 0.03) {
-      level = '좋음';
-    } else if (value > 0.03 && value <= 0.06) {
-      level = '보통';
-    } else if (value > 0.06 && value <= 0.2) {
-      level = '나쁨';
-    } else if (value > 0.2) {
-      level = '매우나쁨';
-    }
-
-    dust= {
-      ...dust,
-      nitrogenDioxide: value,
-      nitrogenDioxideLevel: level
-    }
-  }
-}
-
-function renderDustData() {
-  const contentViewContainer = document.querySelector('.rightWidgetContainer .contentViewContainer')
-  const dustDataText = document.querySelector('.rightWidgetContainer .dustDataContainer .dustDataText')
-  const dustDataImage = document.querySelector('.rightWidgetContainer .dustDataContainer img')
-  console.log(contentViewContainer, dustDataText)
-  dustDataText.innerHTML = `${dust.fineDustLevel}`;
-  dustDataImage.innerHTML = `<img src="${selectEmoticon()}" width="50%" height="auto">`
-  contentViewContainer.innerHTML = `
-    <div class="contentView">
-      <span>미세먼지</span>
-      <span class="fineDustLevel">${dust.fineDustLevel}</span>
-      <span>${dust.fineDust}μg/m3</span>
-    </div>
-    <div class="contentView">
-      <span>초미세먼지</span>
-      <span>${dust.ultraFineDustLevel}</span>
-      <span>${dust.ultraFineDust}μg/m3</span>
-    </div>
-    <div class="contentView">
-      <span>이산화질소</span>
-      <span>${dust.nitrogenDioxideLevel}</span>
-      <span>${dust.nitrogenDioxide}ppm</span>
-    </div>
-    `
-}
-
-makeCovidData = (data) => {
-  let covidData;
-  console.log('covidData: ', data)
-  for (let key in data) {
-    covidData = data[key]
-  }
-
-  let prevData = covidData.body.items.item[1];
-  let currData = covidData.body.items.item[0];
-
-  // console.log('prevData: ', prevData);
-  // console.log('currData: ', currData);
-
-  let covidCopy = this.state.covid;
-  covidCopy.dateTime = currData.createDt;
-  covidCopy.confirmed = this.addComma(currData.decideCnt);   // 확진환자
-  covidCopy.released = this.addComma(currData.clearCnt);     // 격리해제
-  covidCopy.deceased = this.addComma(currData.deathCnt);     //사망자
-  covidCopy.inProgress = this.addComma(currData.examCnt);    //검사진행
-
-  covidCopy.confirmedDailyChange = currData.decideCnt - prevData.decideCnt;   // 확진환자 변화량
-  covidCopy.releasedDailyChange = currData.clearCnt - prevData.clearCnt;      // 격리해제 변화량
-  covidCopy.deceasedDailyChange = currData.deathCnt - prevData.deathCnt;      // 사망자 변화량
-  covidCopy.inProgressDailyChange = currData.examCnt - prevData.examCnt;      // 검사진행 변화량
-}
-
-addComma = (num) => {
-  let regExp = /\B(?=(\d{3})+(?!\d))/g;     //정규 표현식
-  return num.toString().replace(regExp, ',');
-}
-
-formatDate = () => {
-  let todayDate = new Date();
-  let today = this.calculateDate(todayDate);
-
-  let yesterdayDate = new Date(Date.now() - 86400000);
-  // 86400000 = 24 * 60 * 60 * 1000
-  let yesterday = this.calculateDate(yesterdayDate);
-
-  let dateData = {
-    today: today,
-    yesterday: yesterday
-  }
-
-  return dateData;
-}
-
-calculateDate = (date) => {
-  let year = date.getFullYear();
-  let month = (date.getMonth() + 1).toString();     //0~11 값이 나옴
-  let day = (date.getDate()).toString();
-
-  if(month.length < 2) month = `0${month}`;
-  if(day.length < 2) day = `0${day}`;
-
-  let finalDate = `${year}${month}${day}`;
-
-  return finalDate;
-}
-
-selectEmoticon = () => {
-  const fineDustLevel = dust.fineDustLevel;
-  let emoticonPath;
-
-  switch (fineDustLevel) {
-    case '좋음':
-      emoticonPath = '../../assets/images/very_good.png'
-      return emoticonPath
-    case '보통':
-      emoticonPath = '../../assets/images/good.png'
-      return emoticonPath
-    case '나쁨':
-      emoticonPath = '../../assets/images/bad.png'
-      return emoticonPath
-    case '매우나쁨':
-      emoticonPath = '../../assets/images/very_bad.png'
-      return emoticonPath
-    default:
-      emoticonPath = '../../assets/images/very_good.png'
-      return emoticonPath
-  }
-}
 
 function init() {
+  requestDust();
   getTime();  //처음에 getTime을 실행하고
+  reloadWidgetTime()
   // setInterval(()=>{
   //   getTime()
   //   getNoSmokingTime()
@@ -631,7 +242,6 @@ function init() {
   showList();
   showWidgetList();
   getUserName();
-  requestDust();
 }
 
 init();
