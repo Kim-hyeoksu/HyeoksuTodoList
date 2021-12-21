@@ -17,8 +17,8 @@
 
   <ul class="widgetContainer">
     <button class="resetBtn" onClick="resetWidgetList()">초기화</button>
-    <li class="widget" onclick="toggleModal('widget')">
-      <div class="addWidget">+</div>
+    <li class="widget addWidget">
+      <div>+</div>
     </li>
   </ul>
 
@@ -55,8 +55,8 @@
    <section class="modal_body">
     <form></form>
     <div class="btnContainer">
-      <button class="positiveBtn" onclick="resetList()">예</button>
-      <button class="negativeBtn" onclick="toggleModal()">아니오</button>
+      <button class="positiveBtn">예</button>
+      <button class="negativeBtn">아니오</button>
       <button class="deleteBtn">삭제</button>
     </div>
    </section>
@@ -64,9 +64,9 @@
 
   <header>
     <ul>
-      <a href="#"><li>캘린더</li></a>
-      <a href="#" onclick="toggleModal('stopWatch')"><li>스톱워치</li></a>
-      <a href="#" onclick="toggleModal('memo')"><li>메모장</li></a>
+      <a href="#" class="calendarBtn"><li>캘린더</li></a>
+      <a href="#" class="stopWatchBtn"><li>스톱워치</li></a>
+      <a href="#" class="memoBtn"><li>메모장</li></a>
     </ul>
   </header>
 
@@ -80,15 +80,13 @@
     </article>
 
     <article class="todoListContainer">
-      <input type="text" class="userNameInput" name="userNameInput"
-      onkeyup="if(window.event.keyCode==13){setUserName()}"></input>
+      <input type="text" class="userNameInput" name="userNameInput"></input>
       <span class="todolistOfToday">님의 오늘의 할 일</span>
 
-      <input type="text" name="todoInput" class="todoInput" placeholder="오늘의 할 일을 입력해주세요."
-      onkeyup="if(window.event.keyCode==13){addTodoList()}">
+      <input type="text" name="todoInput" class="todoInput" placeholder="오늘의 할 일을 입력해주세요.">
       <ul class="todoList">
       </ul>
-      <button class="resetBtn" type="text" onclick="toggleModal('reset')"><span>Reset</span></button>
+      <button class="resetBtn" type="text"><span>Reset</span></button>
     </article>
   </main>
   <footer>

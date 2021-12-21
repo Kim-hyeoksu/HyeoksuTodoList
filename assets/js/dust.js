@@ -77,7 +77,6 @@ function renderDustData() {
   const contentViewContainer = document.querySelector('.rightWidgetContainer .contentViewContainer')
   const dustDataText = document.querySelector('.rightWidgetContainer .dustDataContainer .dustDataText')
   const dustDataImage = document.querySelector('.rightWidgetContainer .dustDataContainer img')
-  console.log(contentViewContainer, dustDataText, dust)
   dustDataText.innerHTML = `${dust.dateTime}`;
   dustDataImage.innerHTML = `<img src="${selectEmoticon()}" width="50%" height="auto">`
   contentViewContainer.innerHTML = `

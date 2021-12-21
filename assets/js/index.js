@@ -2,6 +2,7 @@ import {getUserName, setUserName, deleteUserName} from './user.js'
 import  {addTodoList, clearTodo, showList, resetList} from './todoList.js'
 import {modifyWidget, addWidget, showWidgetList, deleteWidget, resetWidgetList, reloadWidgetTime} from './widget.js'
 import {requestDust, makeDustData, renderDustData, selectEmoticon} from './dust.js'
+import {requestWeather} from './weather.js'
 //import 해오는 주소에 .js를 붙이지않으면 404 error 발생
 
 let nowDate = document.querySelector('main .date h1');
@@ -18,15 +19,48 @@ let dust = {
   nitrogenDioxideLevel: ''      //이산화질소 단계
 }
 
-
+//전역변수
+//innerHTML로 만든 html 태그 안에 onClick으로 함수를 실행하는 경우이거나,
+//모듈에서 불러온 변수나 함수 등을 다른 모듈에서도 사용하기 위해 전역변수화 시켜야함.
 window.nowDate = nowDate;
 window.todoList = todoList;
 window.itemList = itemList;
 window.dust = dust;
+window.toggleModal = toggleModal
+window.stopWatch = stopWatch
 
+//이벤트 등록
+const userNameInput = document.querySelector('main .todoListContainer .userNameInput')
+userNameInput.addEventListener('keyup', (event)=>{
+  console.log('userNameInput')
+  if(event.keyCode==13){
+    setUserName()
+  }
+})
+const todoInput = document.querySelector('main .todoListContainer .todoInput')
+todoInput.addEventListener('keyup', (event)=>{
+  if(event.keyCode==13){
+    addTodoList()
+  }
+})
+const positiveBtn = document.querySelector('.modal .modal_body .btnContainer .positiveBtn')
+const negativeBtn = document.querySelector('.modal .modal_body .btnContainer .negativeBtn')
+positiveBtn.addEventListener('click', ()=>resetList())
+negativeBtn.addEventListener('click', ()=>toggleModal())
 
+const plusWidget = document.querySelector('.widgetContainer .addWidget')
+plusWidget.addEventListener('click', ()=>toggleModal('widget'))
 
+const calendarBtn = document.querySelector('header ul .calendarBtn')
+const stopWatchBtn = document.querySelector('header ul .stopWatchBtn')
+const memoBtn = document.querySelector('header ul .memoBtn')
+stopWatchBtn.addEventListener('click', ()=>toggleModal('stopWatch'))
+memoBtn.addEventListener('click', ()=>toggleModal('memo'))
+
+const resetBtn = document.querySelector('.todoListContainer .resetBtn')
+resetBtn.addEventListener('click', ()=>toggleModal('reset'))
 function toggleModal(item, e) {
+  console.log(item)
   const modal = document.querySelector('body .modal');
   const modalText = document.querySelector('body .modal .modal_body form');
   const modalBody = document.querySelector('body .modal .modal_body')
@@ -228,7 +262,8 @@ function stopWatch(type) {
 
 
 function init() {
-  requestDust();
+  // requestDust();
+  requestWeather();
   getTime();  //처음에 getTime을 실행하고
   reloadWidgetTime()
   // setInterval(()=>{
