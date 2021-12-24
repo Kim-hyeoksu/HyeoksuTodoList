@@ -28,6 +28,10 @@ window.itemList = itemList;
 window.dust = dust;
 window.toggleModal = toggleModal
 window.stopWatch = stopWatch
+window.resetWidgetList = resetWidgetList
+window.addWidget = addWidget
+window.deleteWidget = deleteWidget
+window.showWidgetList = showWidgetList
 
 //이벤트 등록
 const userNameInput = document.querySelector('main .todoListContainer .userNameInput')
@@ -43,10 +47,12 @@ todoInput.addEventListener('keyup', (event)=>{
     addTodoList()
   }
 })
-const positiveBtn = document.querySelector('.modal .modal_body .btnContainer .positiveBtn')
+
+const widgetResetBtn = document.querySelector('.widgetContainer .resetBtn');
+widgetResetBtn.addEventListener('click', ()=>toggleModal('resetWidget'))
+
 const negativeBtn = document.querySelector('.modal .modal_body .btnContainer .negativeBtn')
-positiveBtn.addEventListener('click', ()=>resetList())
-negativeBtn.addEventListener('click', ()=>toggleModal())
+negativeBtn.addEventListener('click', toggleModal)
 
 const plusWidget = document.querySelector('.widgetContainer .addWidget')
 plusWidget.addEventListener('click', ()=>toggleModal('widget'))
@@ -58,9 +64,9 @@ stopWatchBtn.addEventListener('click', ()=>toggleModal('stopWatch'))
 memoBtn.addEventListener('click', ()=>toggleModal('memo'))
 
 const resetBtn = document.querySelector('.todoListContainer .resetBtn')
-resetBtn.addEventListener('click', ()=>toggleModal('reset'))
+resetBtn.addEventListener('click', ()=>toggleModal('resetTodolist'))
+
 function toggleModal(item, e) {
-  console.log(item)
   const modal = document.querySelector('body .modal');
   const modalText = document.querySelector('body .modal .modal_body form');
   const modalBody = document.querySelector('body .modal .modal_body')
@@ -78,11 +84,11 @@ function toggleModal(item, e) {
     widgetDateType: '',
     widgetCalculatedDate: ''
   }
-  if (item === 'reset') {
+  if (item === 'resetTodolist') {
     modalBody.style.height = '150px'
     modalText.innerHTML = '<p>리스트를 초기화 하시겠습니까?</p>'
     deleteBtn.classList.remove('show')
-    positiveBtn.setAttribute('onClick', 'resetList()')
+    positiveBtn.onclick = resetList
   } else if (item === 'widget') {
     modalBody.style.height = '250px'
     modalText.outerHTML = `
@@ -103,7 +109,8 @@ function toggleModal(item, e) {
     </form>
     `
     deleteBtn.classList.remove('show')
-    positiveBtn.setAttribute('onClick', 'addWidget()')
+    positiveBtn.onclick = addWidget
+
   } else if (item === 'modifyWidget') {
     let parsedWidgetList = JSON.parse(localStorage.getItem('widgetList'));
     selectedWidget.id = Number(e.currentTarget.id)
@@ -138,6 +145,7 @@ function toggleModal(item, e) {
     `
     deleteBtn.classList.add('show')
     deleteBtn.addEventListener('click', (e)=> {
+      console.log(selectedWidget.id)
       deleteWidget(selectedWidget.id)
       e.preventDefault()
     })
@@ -190,6 +198,13 @@ function toggleModal(item, e) {
     modalText.innerHTML = '';
     modalBody.style.height = '500px'
     modalBody.style.width = '70%'
+    
+  } else if (item === 'resetWidget') {
+    console.log('resetWidget')
+    modalBody.style.height = '150px'
+    modalText.innerHTML = '<p>위젯을 초기화 하시겠습니까?</p>'
+    deleteBtn.classList.remove('show')
+    positiveBtn.onclick = resetWidgetList
   }
   modal.classList.toggle('show')
 }
@@ -262,8 +277,8 @@ function stopWatch(type) {
 
 
 function init() {
-  // requestDust();
-  requestWeather();
+  requestDust();
+  // requestWeather();
   getTime();  //처음에 getTime을 실행하고
   reloadWidgetTime()
   // setInterval(()=>{

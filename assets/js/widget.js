@@ -57,15 +57,16 @@ function addWidget(isModify, selectedWidget) {
       return 0;
     }
   }
+  widgetDateTypeContent()
   const newWidget = {
     content: `
     <li class="widget" id="${createNextId(widgetList)}" onclick="toggleModal('modifyWidget', event)">
-      <span>${widgetName}</span>
+      <span id="${widgetDateType}">${widgetName}</span>
       <span id="eventDate">${widgetDate}</span>
       ${widgetDateTypeContent()}
     </li>
     `,
-    id: createNextId(widgetList),
+    id: `${createNextId(widgetList)}`,
     widgetName: widgetName,
     widgetDate: widgetDate,
     widgetDateType: widgetDateType,
@@ -89,9 +90,11 @@ function addWidget(isModify, selectedWidget) {
 }
 
 function showWidgetList() {
+  console.log('showWidgetList')
+
   let widgetContainer = document.querySelector('.widgetContainer');
   widgetContainer.innerHTML = `
-    <button onClick="resetWidgetList()">초기화</button>
+    <button class="resetBtn">초기화</button>
     <li class="widget" onclick="toggleModal('widget')">
       <span class="addWidget">+</span>
     </li>
@@ -107,14 +110,17 @@ function showWidgetList() {
 
 function deleteWidget(id) {
   const parsedWidgetList = JSON.parse(localStorage.getItem('widgetList'));
+  console.log(parsedWidgetList)
   for (let i = 0; i < parsedWidgetList.length; i++) {
-    if (parsedWidgetList[i].id === parseInt(id, 10)) {
+    if (Number(parsedWidgetList[i].id) === Number(id)) {
+      console.log('id:',parsedWidgetList[i].id)
       parsedWidgetList.splice(i, 1);
       i--;
     }
   }
   localStorage.removeItem('widgetList');
   localStorage.setItem('widgetList', JSON.stringify(parsedWidgetList))
+  console.log(parsedWidgetList)
   showWidgetList();
   toggleModal();
 }
@@ -122,17 +128,35 @@ function deleteWidget(id) {
 function resetWidgetList() {
   localStorage.removeItem('widgetList');
   showWidgetList()
-  alert('위젯이 초기화되었습니다.')
 }
+
+// function reloadWidgetTime() {
+//   const today = new Date().getTime();
+//   const widgetList = document.querySelector('body .widgetContainer')
+//   let gap = null;
+//   for(let i = 2; i < widgetList.children.length; i++) {
+//     let widgetDate = Date.parse(widgetList.children[i].children[1].innerHTML);    //문자열을 밀리초 값으로 변환
+//     let mainDate;
+//     if (today > widgetDate) {
+//       gap = Math.floor(((today - widgetDate) / 1000 / 60 / 60 / 24) + 1)    //경과일
+//       mainDate = widgetList.children[i].children[2].firstElementChild
+//     } else {
+//       gap = Math.ceil((widgetDate - today) / 1000 / 60 / 60 / 24)   //디데이 올림
+//       mainDate = widgetList.children[i].children[2].lastElementChild
+//     }
+//     mainDate.innerHTML = `${gap}`
+//   }
+// }
 
 function reloadWidgetTime() {
   const today = new Date().getTime();
   const widgetList = document.querySelector('body .widgetContainer')
   let gap = null;
   for(let i = 2; i < widgetList.children.length; i++) {
+    let widgetDateType = widgetList.children[i].children[0].id;
     let widgetDate = Date.parse(widgetList.children[i].children[1].innerHTML);    //문자열을 밀리초 값으로 변환
     let mainDate;
-    if (today > widgetDate) {
+    if (widgetDateType === 'days') {
       gap = Math.floor(((today - widgetDate) / 1000 / 60 / 60 / 24) + 1)    //경과일
       mainDate = widgetList.children[i].children[2].firstElementChild
     } else {
